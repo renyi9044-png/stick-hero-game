@@ -154,23 +154,23 @@
             
             if (score < 10) {
                 // 0-9 分：简单模式（缩小到 60%）
-                minWidth = 54;   // 原 90
-                maxWidth = 90;   // 原 150
+                minWidth = 3;    // 5 * 0.6
+                maxWidth = 42;   // 70 * 0.6
             } else if (score < 20) {
                 // 10-19 分：中等难度（缩小到 60%）
-                minWidth = 30;   // 原 50
-                maxWidth = 72;   // 原 120
+                minWidth = 3;
+                maxWidth = 42;
             } else {
                 // 20+ 分：困难模式（缩小到 60%）
-                minWidth = 12;   // 原 20
-                maxWidth = 48;   // 原 80
+                minWidth = 3;
+                maxWidth = 42;
             }
             
             const width = minWidth + Math.random() * (maxWidth - minWidth);
             
-            // 平台距离随机：36-210 像素（原 60-350，缩小到 60%）
-            const minGap = 36;
-            const maxGap = 210;
+            // 平台距离随机：3-108 像素（原 5-180，缩小到 60%）
+            const minGap = 3;
+            const maxGap = 108;
             const gap = minGap + Math.random() * (maxGap - minGap);
             
             platforms.push({
