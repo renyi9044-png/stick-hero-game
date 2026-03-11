@@ -365,7 +365,7 @@
             console.log('Starting new game...');
             init();
             document.getElementById('start').style.display = 'none';
-            document.getElementById('gameover').style.display = 'none';
+            document.getElementById('gameover').classList.remove('show');
             console.log('Game state:', state, 'score:', score, 'curIdx:', curIdx);
         }
         
