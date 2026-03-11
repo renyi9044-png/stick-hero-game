@@ -139,7 +139,7 @@
             ];
             sticks = [];
             curIdx = 0;
-            hero = { x: 72, y: PY - PLATFORM_HEIGHT };  // 英雄站在平台顶部
+            hero = { x: 72, y: PY - PLATFORM_HEIGHT - 21 };  // 英雄站在平台顶部
             stick = { x: 96, y: PY - PLATFORM_HEIGHT, len: 0, angle: -Math.PI/2 };
             camX = 18;  // 初始相机位置
             score = 0;
@@ -218,8 +218,8 @@
                 if (hero.x >= targetX - 15) {
                     hero.x = targetX - 15;
                     curIdx++;
-                    // 英雄 y 坐标 = 新平台顶部
-                    hero.y = platforms[curIdx].y;
+                    // 英雄站在平台顶部（英雄脚部 = 平台顶部）
+                    hero.y = platforms[curIdx].y - 21;  // 21 是英雄腿底部到中心的距离
                     state = 'next';
                     
                     setTimeout(() => {
@@ -269,26 +269,13 @@
             
             // 游戏结束后，保持相机位置不变
             if (state !== 'gameover') {
-                // 相机跟随英雄移动
-                if (state === 'walk' || state === 'walk_fall') {
-                    // 走路时：相机以英雄为中心，稍微偏左
-                    const targetCamX = hero.x - W * 0.3;
-                    const diff = targetCamX - camX;
-                    if (Math.abs(diff) > 1) {
-                        camX += diff * 0.15;  // 相机跟随速度
-                    } else {
-                        camX = targetCamX;
-                    }
+                // 相机始终跟随英雄，平滑移动
+                const targetCamX = hero.x - W * 0.3;
+                const diff = targetCamX - camX;
+                if (Math.abs(diff) > 1) {
+                    camX += diff * 0.08;  // 慢速平滑跟随，无顿挫感
                 } else {
-                    // 其他状态：当前平台在屏幕左侧
-                    const currentPlat = platforms[curIdx];
-                    const targetCamX = currentPlat.x - 30;
-                    const diff = targetCamX - camX;
-                    if (Math.abs(diff) > 1) {
-                        camX += diff * 0.08;
-                    } else {
-                        camX = targetCamX;
-                    }
+                    camX = targetCamX;
                 }
             }
         }
