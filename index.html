@@ -104,10 +104,10 @@
         const canvas = document.getElementById('game');
         const ctx = canvas.getContext('2d');
         
-        // 固定逻辑尺寸 - 调大画布
-        const W = 600, H = 800;
-        const PY = H - 80;  // 平台底部位置
-        const PLATFORM_HEIGHT = 400;  // 平台高度（高柱子）
+        // 固定逻辑尺寸 - 整体缩小到 75%
+        const W = 450, H = 600;  // 原 600x800，缩小到 75%
+        const PY = H - 60;
+        const PLATFORM_HEIGHT = 300;  // 原 400，缩小到 75%
         
         canvas.width = W;
         canvas.height = H;
@@ -134,14 +134,14 @@
         
         function init() {
             platforms = [
-                { x: 80, y: PY - PLATFORM_HEIGHT, w: 80, h: PLATFORM_HEIGHT },
-                { x: 300, y: PY - PLATFORM_HEIGHT, w: 80, h: PLATFORM_HEIGHT }
+                { x: 60, y: PY - PLATFORM_HEIGHT, w: 60, h: PLATFORM_HEIGHT },
+                { x: 225, y: PY - PLATFORM_HEIGHT, w: 60, h: PLATFORM_HEIGHT }
             ];
             sticks = [];
             curIdx = 0;
-            hero = { x: 120, y: PY - PLATFORM_HEIGHT - 40 };  // 站在平台上
-            stick = { x: 160, y: PY - PLATFORM_HEIGHT, len: 0, angle: -Math.PI/2 };
-            camX = 30;  // 初始相机位置，让平台 1 在左侧
+            hero = { x: 90, y: PY - PLATFORM_HEIGHT - 30 };  // 站在平台上
+            stick = { x: 120, y: PY - PLATFORM_HEIGHT, len: 0, angle: -Math.PI/2 };
+            camX = 22;  // 初始相机位置，让平台 1 在左侧
             score = 0;
             state = 'start';  // 重置状态
             document.getElementById('score').innerText = '0';
@@ -153,24 +153,24 @@
             let minWidth, maxWidth;
             
             if (score < 10) {
-                // 0-9 分：简单模式
-                minWidth = 90;
-                maxWidth = 150;
+                // 0-9 分：简单模式（缩小到 75%）
+                minWidth = 68;   // 原 90
+                maxWidth = 113;  // 原 150
             } else if (score < 20) {
-                // 10-19 分：中等难度
-                minWidth = 50;
-                maxWidth = 120;
+                // 10-19 分：中等难度（缩小到 75%）
+                minWidth = 38;   // 原 50
+                maxWidth = 90;   // 原 120
             } else {
-                // 20+ 分：困难模式
-                minWidth = 20;
-                maxWidth = 80;
+                // 20+ 分：困难模式（缩小到 75%）
+                minWidth = 15;   // 原 20
+                maxWidth = 60;   // 原 80
             }
             
             const width = minWidth + Math.random() * (maxWidth - minWidth);
             
-            // 平台距离随机：60-350 像素（变化很大！）
-            const minGap = 60;
-            const maxGap = 350;
+            // 平台距离随机：45-263 像素（原 60-350，缩小到 75%）
+            const minGap = 45;
+            const maxGap = 263;
             const gap = minGap + Math.random() * (maxGap - minGap);
             
             platforms.push({
@@ -211,12 +211,12 @@
             }
             
             if (state === 'walk') {
-                hero.x += 6;  // 走路速度加倍
+                hero.x += 3;  // 恢复原速度
                 const targetPlat = platforms[curIdx + 1];
                 const targetX = targetPlat.x + targetPlat.w;  // 走到新平台的右边缘
                 
-                if (hero.x >= targetX - 25) {
-                    hero.x = targetX - 25;
+                if (hero.x >= targetX - 19) {  // 25 * 0.75 ≈ 19
+                    hero.x = targetX - 19;
                     curIdx++;
                     hero.y = platforms[curIdx].y - 50;
                     state = 'next';
@@ -235,18 +235,18 @@
                         stick.angle = -Math.PI/2;
                         
                         state = 'start';
-                    }, 300);  // 缩短等待时间
+                    }, 400);  // 恢复原等待时间
                 }
             }
             
             // 棍子太短/太长：英雄走到棍子尽头再掉下来
             if (state === 'walk_fall') {
-                hero.x += 6;  // 走路速度加倍
+                hero.x += 3;  // 恢复原速度
                 const end = stick.x + stick.len;
                 
                 // 走到棍子尽头
-                if (hero.x >= end - 25) {
-                    hero.x = end - 25;
+                if (hero.x >= end - 19) {  // 25 * 0.75 ≈ 19
+                    hero.x = end - 19;
                     state = 'fall';  // 开始掉落
                 }
             }
@@ -268,27 +268,15 @@
             
             // 游戏结束后，保持相机位置不变
             if (state !== 'gameover') {
+                // 相机逻辑 - 简单直接：
+                // 英雄在哪个平台，相机就让那个平台在屏幕左侧
                 const currentPlat = platforms[curIdx];
+                const targetCamX = currentPlat.x - 50;
                 
-                // 走路时相机提前移动，让下一个平台部分可见
-                let targetCamX;
-                if (state === 'walk' || state === 'walk_fall') {
-                    // 走路时：让目标平台在屏幕右侧可见
-                    const nextPlat = platforms[curIdx + 1];
-                    if (nextPlat) {
-                        targetCamX = nextPlat.x - W * 0.5;  // 提前显示下一个平台
-                    } else {
-                        targetCamX = currentPlat.x - 50;
-                    }
-                } else {
-                    // 其他状态：当前平台在屏幕左侧
-                    targetCamX = currentPlat.x - 50;
-                }
-                
-                // 平滑移动
+                // 匀速移动到目标位置
                 const diff = targetCamX - camX;
                 if (Math.abs(diff) > 1) {
-                    camX += diff * 0.12;  // 更快的相机跟随
+                    camX += diff * 0.08;  // 8% 的速度，平滑但不过分
                 } else {
                     camX = targetCamX;
                 }
@@ -313,7 +301,7 @@
                 ctx.fillRect(p.x + p.w - 8, p.y, 8, p.h);
             });
             
-            // 棍子 - 黑色（更细）
+            // 棍子 - 黑色（缩小到 75%）
             [...sticks, stick].forEach(s => {
                 if (s.len < 5) return;
                 if (s.x + s.len < camX - 50 || s.x > camX + W + 50) return;
@@ -321,26 +309,26 @@
                 ctx.translate(s.x, s.y);
                 ctx.rotate(s.angle);
                 ctx.fillStyle = '#000';  // 纯黑色
-                ctx.fillRect(0, -3, s.len, 6);  // 超细：6px 高
+                ctx.fillRect(0, -2, s.len, 4);  // 原 6px 高，现在 4px
                 ctx.restore();
             });
             
-            // 英雄 - 黑色火柴人（变小）
+            // 英雄 - 黑色火柴人（缩小到 75%）
             ctx.strokeStyle = '#000';  // 纯黑色
-            ctx.lineWidth = 3;  // 更细
+            ctx.lineWidth = 2;  // 原 3
             ctx.beginPath();
-            ctx.arc(hero.x, hero.y - 20, 14, 0, Math.PI * 2);  // 头更小
+            ctx.arc(hero.x, hero.y - 15, 11, 0, Math.PI * 2);  // 头部 14→11
             ctx.stroke();
             ctx.beginPath();
-            ctx.moveTo(hero.x, hero.y - 6);
-            ctx.lineTo(hero.x, hero.y + 18);  // 身体更短
-            ctx.lineTo(hero.x - 10, hero.y + 35);  // 腿更短
-            ctx.moveTo(hero.x, hero.y + 18);
-            ctx.lineTo(hero.x + 10, hero.y + 35);
+            ctx.moveTo(hero.x, hero.y - 4);
+            ctx.lineTo(hero.x, hero.y + 14);  // 身体缩短
+            ctx.lineTo(hero.x - 8, hero.y + 26);  // 腿缩短
+            ctx.moveTo(hero.x, hero.y + 14);
+            ctx.lineTo(hero.x + 8, hero.y + 26);
             ctx.moveTo(hero.x, hero.y);
-            ctx.lineTo(hero.x - 12, hero.y + 12);  // 手臂更短
+            ctx.lineTo(hero.x - 9, hero.y + 9);  // 手臂缩短
             ctx.moveTo(hero.x, hero.y);
-            ctx.lineTo(hero.x + 12, hero.y + 12);
+            ctx.lineTo(hero.x + 9, hero.y + 9);
             ctx.stroke();
             
             ctx.restore();
