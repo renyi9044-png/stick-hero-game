@@ -9,9 +9,19 @@
         body { 
             background: linear-gradient(180deg, #FFF5E4 0%, #FFE8D0 100%); 
             overflow: hidden; 
-            touch-action: none; 
+            touch-action: none;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-        canvas { display: block; margin: 0 auto; }
+        canvas { 
+            display: block; 
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
         #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
         #score { 
             position: absolute; 
@@ -105,12 +115,26 @@
         const ctx = canvas.getContext('2d');
         
         // 固定逻辑尺寸 - 整体缩小到 60%
-        const W = 360, H = 480;  // 原 600x800，缩小到 60%
-        const PY = H - 48;
-        const PLATFORM_HEIGHT = 240;  // 原 400，缩小到 60%
+        const LOGIC_W = 360, LOGIC_H = 480;  // 游戏逻辑尺寸
+        const PY = LOGIC_H - 48;
+        const PLATFORM_HEIGHT = 240;  // 平台高度
         
-        canvas.width = W;
-        canvas.height = H;
+        // 设置 Canvas 实际像素
+        canvas.width = LOGIC_W;
+        canvas.height = LOGIC_H;
+        
+        // 适配屏幕：让 Canvas 填满屏幕
+        function resizeCanvas() {
+            const scaleX = window.innerWidth / LOGIC_W;
+            const scaleY = window.innerHeight / LOGIC_H;
+            const scale = Math.min(scaleX, scaleY);
+            
+            canvas.style.width = (LOGIC_W * scale) + 'px';
+            canvas.style.height = (LOGIC_H * scale) + 'px';
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();  // 初始化
         
         let state = 'start';
         let score = 0;
@@ -133,19 +157,6 @@
         let curIdx = 0;
         
         function init() {
-            platforms = [
-                { x: 48, y: PY - PLATFORM_HEIGHT, w: 48, h: PLATFORM_HEIGHT },
-                { x: 180, y: PY - PLATFORM_HEIGHT, w: 48, h: PLATFORM_HEIGHT }
-            ];
-            sticks = [];
-            curIdx = 0;
-            hero = { x: 72, y: PY - PLATFORM_HEIGHT - 21 };  // 英雄站在平台顶部
-            stick = { x: 96, y: PY - PLATFORM_HEIGHT, len: 0, angle: -Math.PI/2 };
-            camX = 18;  // 初始相机位置
-            score = 0;
-            state = 'start';
-            document.getElementById('score').innerText = '0';
-        }
         
         function spawn() {
             const last = platforms[platforms.length - 1];
@@ -270,7 +281,7 @@
             // 游戏结束后，保持相机位置不变
             if (state !== 'gameover') {
                 // 相机始终跟随英雄，平滑移动
-                const targetCamX = hero.x - W * 0.3;
+                const targetCamX = hero.x - LOGIC_W * 0.3;
                 const diff = targetCamX - camX;
                 if (Math.abs(diff) > 1) {
                     camX += diff * 0.08;  // 慢速平滑跟随，无顿挫感
@@ -281,13 +292,13 @@
         }
         
         function draw() {
-            ctx.clearRect(0, 0, W, H);
+            ctx.clearRect(0, 0, LOGIC_W, LOGIC_H);
             ctx.save();
             ctx.translate(-camX, 0);
             
             // 平台 - 黑色高柱子（悬崖感）
             platforms.forEach(p => {
-                if (p.x + p.w < camX - 50 || p.x > camX + W + 50) return;
+                if (p.x + p.w < camX - 50 || p.x > camX + LOGIC_W + 50) return;
                 ctx.fillStyle = '#1a1a1a';  // 深黑色
                 ctx.fillRect(p.x, p.y, p.w, p.h);
                 // 顶部亮边
@@ -301,7 +312,7 @@
             // 棍子 - 黑色（缩小到 60%）
             [...sticks, stick].forEach(s => {
                 if (s.len < 5) return;
-                if (s.x + s.len < camX - 50 || s.x > camX + W + 50) return;
+                if (s.x + s.len < camX - 50 || s.x > camX + LOGIC_W + 50) return;
                 ctx.save();
                 ctx.translate(s.x, s.y);
                 ctx.rotate(s.angle);
