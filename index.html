@@ -158,6 +158,21 @@
         
         function init() {
         
+        function init() {
+            platforms = [
+                { x: 48, y: PY - PLATFORM_HEIGHT, w: 48, h: PLATFORM_HEIGHT },
+                { x: 180, y: PY - PLATFORM_HEIGHT, w: 48, h: PLATFORM_HEIGHT }
+            ];
+            sticks = [];
+            curIdx = 0;
+            hero = { x: 72, y: PY - PLATFORM_HEIGHT - 21 };  // 英雄站在平台顶部
+            stick = { x: 96, y: PY - PLATFORM_HEIGHT, len: 0, angle: -Math.PI/2 };
+            camX = 18;  // 初始相机位置
+            score = 0;
+            state = 'start';
+            document.getElementById('score').innerText = '0';
+        }
+        
         function spawn() {
             const last = platforms[platforms.length - 1];
             
@@ -352,7 +367,7 @@
             console.log('Starting new game...');
             init();
             document.getElementById('start').style.display = 'none';
-            document.getElementById('gameover').classList.remove('show');
+            document.getElementById('gameover').style.display = 'none';
             console.log('Game state:', state, 'score:', score, 'curIdx:', curIdx);
         }
         
